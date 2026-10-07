@@ -7,10 +7,16 @@
 | 面板 | `docker-compose.yml` | 带网页,汇总所有服务器、检测网站、发 ntfy 告警 |
 | 探针 | 面板里生成的 `docker run` 命令 | 给被监控的机器用,只开 `/api/stats`,没有网页 |
 
-## 主面板
-    # 先把 docker-compose.yml 里的 TOKEN 改成自己的密钥
-    docker compose up -d --build
-    访问 http://服务器IP:8060
+## 主面板(不用下载源码)
+镜像由 GitHub Actions 自动构建,支持 amd64 / arm64 / armv7:`ghcr.io/lu8010252/nbm:latest`
+
+    # 1. 新建文件夹,把本仓库 docker-compose.yml 的内容保存进去(或在 1Panel「容器 → 编排」里粘贴)
+    # 2. 把 TOKEN、PANEL_PASS 的 CHANGE_ME 改成自己的值
+    docker compose up -d
+    # 访问 http://服务器IP:8060
+    # 更新: docker compose pull && docker compose up -d   (数据在 ./data,不会丢)
+
+想本地改代码构建:克隆仓库后把 compose 里的 `image:` 换成 `build: .`,再 `docker compose up -d --build`。
 
 ## 被监控的服务器(探针)
 不用复制任何文件。在主面板点「添加服务器」,页面会自动生成 TOKEN 和一条 `docker run` 命令,
@@ -48,3 +54,8 @@ IP 由探针自动探测上报;探针还没升级、或探测不准时,可以在
 
 ## 更新面板
 覆盖源文件(**不要动 `data/` 目录**)后:`docker compose up -d --build`。
+
+## 镜像拉取失败
+- 提示 `unauthorized` / `not found`:镜像还是私有的。仓库所有者到 GitHub 个人主页 → Packages → 点开该镜像 →
+  Package settings → Change visibility 设为 Public(只需设置一次)。
+- 国内服务器拉 `ghcr.io` 很慢或超时:换用能访问 ghcr.io 的机器拉取后 `docker save` / `docker load`,或给 Docker 配置镜像加速/代理。

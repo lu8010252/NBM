@@ -1,9 +1,9 @@
 # 探针:给被监控的服务器用。只开 /api/stats,没有网页、设置、壁纸和告警。
-# 部署: docker compose -f docker-compose.agent.yml up -d --build
+# 部署: docker compose -f docker-compose.agent.yml up -d
 name: nbm-agent
 services:
   nbm-agent:
-    build: .
+    image: ghcr.io/lu8010252/nbm:latest
     container_name: nbm-agent
     restart: unless-stopped
     network_mode: host

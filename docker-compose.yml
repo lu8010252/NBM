@@ -1,7 +1,7 @@
 # 主面板:带网页,负责汇总、告警。放在你日常访问的那台机器上。
 services:
   nbm:
-    build: .
+    image: ghcr.io/lu8010252/nbm:latest
     container_name: nbm
     restart: unless-stopped
     network_mode: host          # 读取宿主机真实网卡流量;改端口请改 PORT,不要用 ports 映射
