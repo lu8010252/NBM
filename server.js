@@ -81,7 +81,7 @@ const load=(f,d)=>{try{return JSON.parse(fs.readFileSync(f,'utf8'))}catch{return
 const DEF={title:'NBM',accent:'#5b8cff',blur:16,opacity:.42,interval:12,bgList:[],mode:'dark',bgType:'photo',grad:'sky',geo:'',showWeather:true,weatherCity:'',favicon:'',
  servers:[{id:'local',name:'本机',url:'',token:''}],sites:[],
  bookmarks:[{folder:'示例',items:[{name:'GitHub',url:'https://github.com'},{name:'Docker Hub',url:'https://hub.docker.com'}]}],
- ntfy:{enabled:true,url:'https://ntfy.8010252.xyz/notice',token:'',failAfter:2,recover:true,cpu:90,mem:90,disk:90,sustain:3}};
+ ntfy:{enabled:false,url:'',token:'',failAfter:2,recover:true,cpu:90,mem:90,disk:90,sustain:3}};
 let CFG=Object.assign({},DEF,load(CF,{}));CFG.ntfy=Object.assign({},DEF.ntfy,CFG.ntfy||{});
 if(!Array.isArray(CFG.servers)||!CFG.servers.length)CFG.servers=DEF.servers;
 const S=(v,n)=>String(v==null?'':v).slice(0,n).trim(),A=v=>Array.isArray(v)?v:[];
