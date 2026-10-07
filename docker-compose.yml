@@ -1,0 +1,18 @@
+# 主面板:带网页,负责汇总、告警。放在你日常访问的那台机器上。
+services:
+  nbm:
+    build: .
+    container_name: nbm
+    restart: unless-stopped
+    network_mode: host          # 读取宿主机真实网卡流量;改端口请改 PORT,不要用 ports 映射
+    environment:
+      - MODE=panel
+      - PORT=8060
+      - TOKEN=CHANGE_ME         # 本机的密钥(其他面板拉取本机数据时用),请改成自己的
+      - DISK_PATH=/host         # 统计宿主机磁盘;不想挂载 / 就删掉这一行和下面的 /:/host:ro
+      - TZ=Asia/Shanghai
+      - PANEL_USER=lu8010252        # 面板登录账号
+      - PANEL_PASS=CHANGE_ME  # 面板登录密码,想改成自己的就直接改这里
+    volumes:
+      - ./data:/app/data
+      - /:/host:ro

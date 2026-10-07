@@ -1,0 +1,18 @@
+# 探针:给被监控的服务器用。只开 /api/stats,没有网页、设置、壁纸和告警。
+# 部署: docker compose -f docker-compose.agent.yml up -d --build
+name: nbm-agent
+services:
+  nbm-agent:
+    build: .
+    container_name: nbm-agent
+    restart: unless-stopped
+    network_mode: host
+    mem_limit: 64m
+    environment:
+      - MODE=agent
+      - PORT=8060
+      - TOKEN=CHANGE_ME         # 自己定一个密钥,然后在主面板「添加服务器」里填同一个
+      - DISK_PATH=/host
+      - TZ=Asia/Shanghai
+    volumes:
+      - /:/host:ro
