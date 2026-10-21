@@ -69,7 +69,13 @@ main{max-width:1120px;margin:0 auto;padding:14px 18px 40px}
 .leg{font-weight:400;font-size:12.5px;color:var(--mut);display:flex;gap:12px}.leg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
 .rg{display:flex;gap:2px;background:rgba(var(--wf),.08);border-radius:9px;padding:2px}.rg button{padding:3px 10px;border-radius:7px;font-size:12px;color:var(--mut);font-weight:400}.rg button.on{background:rgba(var(--wf),.18);color:var(--tx)}
 .chart{position:relative;height:170px}.chart svg{width:100%;height:170px;display:block}
-.htip{position:fixed;z-index:9999;pointer-events:none;display:none;background:rgba(8,12,26,.94);color:#e8ecf8;border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12px;line-height:1.7;white-space:pre-line;max-width:320px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.htip{position:fixed;z-index:9999;pointer-events:none;display:none;width:300px;max-width:calc(100vw - 24px);background:rgba(var(--gl),.9);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);color:var(--tx);border:1px solid var(--line);border-radius:16px;padding:12px 14px;font-size:12.5px;box-shadow:0 10px 30px rgba(0,0,0,.28)}
+.htip .ht-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.htip .ht-t{font-weight:600;font-size:13.5px}.htip .ht-v{font-size:18px;font-weight:700;color:var(--a)}
+.htip .ht-s{color:var(--mut);margin-top:2px;line-height:1.5}.htip .ht-l{color:var(--mut);margin:10px 0 4px;padding-top:8px;border-top:1px solid var(--line);font-size:12px}
+.htip .ht-r{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.7fr) auto;gap:8px;align-items:center;margin:5px 0}
+.htip .ht-r .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.htip .ht-r .n em{font-style:normal;color:var(--mut);font-size:11px;margin-left:5px}
+.htip .ht-r .b{height:6px;border-radius:3px;background:rgba(var(--wf),.1);overflow:hidden}.htip .ht-r .b i{display:block;height:100%;border-radius:3px;background:var(--a)}
+.htip .ht-r b{font-weight:500;text-align:right;white-space:nowrap}.htip .ht-n{color:var(--mut);font-size:12px;line-height:1.5;margin-top:6px}
 .tip{position:absolute;top:6px;pointer-events:none;background:rgba(8,12,26,.94);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:12px;line-height:1.6;white-space:nowrap;display:none;z-index:2}
 .empty{height:100%;display:grid;place-items:center;color:var(--mut);font-size:13px}
 .av{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:2px}.av div{font-size:12.5px;color:var(--mut)}.av b{display:block;font-size:24px;color:var(--tx);font-weight:600;margin-top:1px}
@@ -256,21 +262,30 @@ const modalOpen=()=>$('#md').classList.contains('on');
 const dotc=u=>u===true?'u':u===false?'d':'';
 
 /* ---------- 组件 ---------- */
-function ring(p,label,main,sub,tp){const L=2*Math.PI*33;return`<div class="gc in"${tp?` data-tip="${esc(tp)}"`:''}><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="33" fill="none" style="stroke:rgba(var(--wf),.12)" stroke-width="8"/><circle cx="40" cy="40" r="33" fill="none" stroke="${col(p)}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(L*Math.min(p,100)/100).toFixed(1)} ${L.toFixed(1)}" transform="rotate(-90 40 40)"/><text x="40" y="45" text-anchor="middle" fill="#fff" font-size="16" font-weight="600">${p.toFixed(0)}%</text></svg><div><div class="l">${label}</div><b>${main}</b><div class="v">${sub}</div></div></div>`}
+function ring(p,label,main,sub,k,sid){const L=2*Math.PI*33;return`<div class="gc in"${k?` data-tip="${k}" data-sid="${esc(sid)}"`:''}><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="33" fill="none" style="stroke:rgba(var(--wf),.12)" stroke-width="8"/><circle cx="40" cy="40" r="33" fill="none" stroke="${col(p)}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(L*Math.min(p,100)/100).toFixed(1)} ${L.toFixed(1)}" transform="rotate(-90 40 40)"/><text x="40" y="45" text-anchor="middle" fill="#fff" font-size="16" font-weight="600">${p.toFixed(0)}%</text></svg><div><div class="l">${label}</div><b>${main}</b><div class="v">${sub}</div></div></div>`}
 function hb(a,cls='',n=60){a=a||[];const e=Math.max(0,n-a.length);return`<div class="hb ${cls}">${'<i></i>'.repeat(e)}${a.slice(-n).map(v=>`<i class="${v[0]?'g1':'r1'}" title="${v[0]?'正常 '+v[1]+' ms':'失败'}"></i>`).join('')}</div>`}
-function bar(l,p,tp){return`<div class="bar"${tp?` data-tip="${esc(tp)}"`:''}><span>${l}</span><div class="tr"><i style="width:${Math.min(p,100).toFixed(0)}%;background:${col(p)}"></i></div><b>${p.toFixed(0)}%</b></div>`}
-function tipOf(k,t){const P=x=>x.toFixed(1)+'%',U=o=>o&&o.total?o:{used:0,total:0};
- if(k==='cpu')return['CPU 使用率 '+P(t.cpu),(t.cpuModel&&t.cpuModel!=='—'?t.cpuModel+' · ':'')+t.cores+' 核','负载(1/5/15 分钟) '+t.load.map(x=>x.toFixed(2)).join(' / '),'每核平均负载 '+(t.load[0]/(t.cores||1)).toFixed(2)].join('\n');
- if(k==='mem'){const m=U(t.mem);return['内存 '+P(pct(m)),'已用 '+fb(m.used),'可用 '+fb(m.total-m.used),'总量 '+fb(m.total)].join('\n')}
- if(k==='disk'){const m=U(t.disk);return['磁盘 '+P(pct(m)),'已用 '+fb(m.used),'剩余 '+fb(m.total-m.used),'总量 '+fb(m.total)].join('\n')}
- if(k==='swap'){const m=U(t.swap);return m.total?['交换分区 '+P(pct(m)),'已用 '+fb(m.used),'剩余 '+fb(m.total-m.used),'总量 '+fb(m.total)].join('\n'):'交换分区未启用'}
+function bar(l,p,k,sid){return`<div class="bar"${k?` data-tip="${k}" data-sid="${esc(sid)}"`:''}><span>${l}</span><div class="tr"><i style="width:${Math.min(p,100).toFixed(0)}%;background:${col(p)}"></i></div><b>${p.toFixed(0)}%</b></div>`}
+function tipHtml(k,t){const P=x=>x.toFixed(1)+'%',U=o=>o&&o.total?o:{used:0,total:0},pr=t.procs;
+ const head=(ti,v,sub)=>`<div class="ht-h"><span class="ht-t">${ti}</span><b class="ht-v">${v}</b></div>${sub?`<div class="ht-s">${sub}</div>`:''}`;
+ const rows=(ti,list,val,cl)=>{if(!pr)return`<div class="ht-n">该服务器的探针版本较旧,更新后才能显示进程明细</div>`;
+  let h=`<div class="ht-l">${ti}</div>`;
+  if(!list.length)h+=`<div class="ht-n">${cl}</div>`;
+  else{const mx=Math.max(...list.map(x=>val(x)[0]))||1;h+=list.map(x=>{const[v,txt]=val(x);return`<div class="ht-r"><span class="n">${esc(x.name)}<em>${x.pid}</em></span><span class="b"><i style="width:${Math.max(3,v/mx*100).toFixed(0)}%"></i></span><b>${txt}</b></div>`}).join('')}
+  if(!pr.host)h+=`<div class="ht-n">当前只能看到容器内的进程。给 nbm 容器加上 pid: host 后,这里会显示整台服务器的进程</div>`;
+  return h};
+ if(k==='cpu')return head('CPU 占用',P(t.cpu),(t.cpuModel&&t.cpuModel!=='—'?esc(t.cpuModel)+' · ':'')+t.cores+' 核 · 负载 '+t.load.map(x=>x.toFixed(2)).join(' / '))+rows('进程 CPU 占用 TOP(占整机)',pr?pr.cpu:[],x=>[x.cpu,P(x.cpu)],'没有明显占用 CPU 的进程');
+ if(k==='mem'){const m=U(t.mem);return head('内存 占用',P(pct(m)),'已用 '+fb(m.used)+' · 可用 '+fb(m.total-m.used)+' · 共 '+fb(m.total))+rows('进程内存占用 TOP',pr?pr.mem:[],x=>[x.mem,fb(x.mem)+(m.total?' · '+(100*x.mem/m.total).toFixed(1)+'%':'')],'暂无数据')}
+ if(k==='swap'){const m=U(t.swap);if(!m.total)return head('交换分区','未启用','这台服务器没有开启 swap');return head('交换分区 占用',P(pct(m)),'已用 '+fb(m.used)+' · 剩余 '+fb(m.total-m.used)+' · 共 '+fb(m.total))+rows('进程交换分区占用 TOP',pr?pr.swap:[],x=>[x.swap,fb(x.swap)],'没有进程在使用交换分区')}
+ if(k==='disk'){const m=U(t.disk);return head('磁盘 占用',P(pct(m)),'已用 '+fb(m.used)+' · 剩余 '+fb(m.total-m.used)+' · 共 '+fb(m.total))}
  return''}
-(function(){let el=null,cur=null;const mv=e=>{const w=el.offsetWidth,h=el.offsetHeight;let x=e.clientX+14,y=e.clientY+16;if(x+w>innerWidth-6)x=e.clientX-w-14;if(y+h>innerHeight-6)y=e.clientY-h-14;el.style.left=Math.max(6,x)+'px';el.style.top=Math.max(6,y)+'px'};
- document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(!t){if(el)el.style.display='none';cur=null;return}
+(function(){let el=null;const hide=()=>{if(el)el.style.display='none'};
+ document.addEventListener('mousemove',e=>{const n=e.target.closest&&e.target.closest('[data-tip]');if(!n){hide();return}
+  const sv=((window.st||st||{}).servers||[]).find(x=>x.id===n.getAttribute('data-sid')),t=sv&&sv.stats;if(!t){hide();return}
   if(!el){el=document.createElement('div');el.className='htip';document.body.appendChild(el)}
-  cur=t;el.textContent=t.getAttribute('data-tip');el.style.display='block';mv(e)});
- document.addEventListener('mousemove',e=>{if(cur&&el&&el.style.display==='block'){if(!document.body.contains(cur)){el.style.display='none';cur=null;return}el.textContent=cur.getAttribute('data-tip');mv(e)}});
- document.addEventListener('mouseleave',()=>{if(el)el.style.display='none';cur=null});
+  el.innerHTML=tipHtml(n.getAttribute('data-tip'),t);el.style.display='block';
+  const w=el.offsetWidth,h=el.offsetHeight;let x=e.clientX+16,y=e.clientY+18;if(x+w>innerWidth-8)x=e.clientX-w-16;if(y+h>innerHeight-8)y=Math.max(8,innerHeight-h-8);
+  el.style.left=Math.max(8,x)+'px';el.style.top=y+'px'});
+ document.addEventListener('mouseleave',hide);document.addEventListener('scroll',hide,true);
 })();
 function spk(d,c='#6ea8ff'){d=d||[];if(d.length<2)return'<svg class="spk"></svg>';const m=Math.max(1,...d),n=d.length;return`<svg class="spk" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="${c}" stroke-width="1.5" vector-effect="non-scaling-stroke" points="${d.map((v,i)=>`${(i/(n-1)*100).toFixed(1)},${(20-v/m*18).toFixed(1)}`).join(' ')}"/></svg>`}
 const niceB=v=>{const k=Math.max(0,Math.floor(Math.log(v)/Math.log(1024))),u=Math.pow(1024,k),x=v/u;return([1,2,5,10,20,50,100,200,500,1000].find(n=>n>=x)||1000)*u};
@@ -316,7 +331,7 @@ function renderTabs(){
 }
 function overview(){
  return`<div class="ov">${st.servers.map(s=>{const t=s.stats;
-  return`<button class="sc g in" data-act="tab" data-id="${esc(s.id)}"><h4><i class="dot ${dotc(s.up)}"></i>${esc(s.name)}${sshOn(s.id)?`<span class="sshb" role="button" tabindex="0" data-act="ssh" data-id="${esc(s.id)}" title="打开 SSH 终端">${ic('term')}SSH</span>`:''}</h4><div class="sub">${t?esc(t.os)+' · 运行 '+fup(t.uptime):s.up===false?'离线:'+esc(s.err):'等待数据…'}</div><div class="ipl">公网 IP ${ipHtml(s)}</div>${t?bar('CPU',t.cpu,tipOf('cpu',t))+bar('内存',pct(t.mem),tipOf('mem',t))+bar('磁盘',pct(t.disk),tipOf('disk',t))+(t.swap&&t.swap.total?bar('交换',pct(t.swap),tipOf('swap',t)):'')+`<div class="ft"><span>↓ ${fsp(t.net.rxs)}&nbsp; ↑ ${fsp(t.net.txs)}</span><span>${upc(s.up24)}</span></div>`:''}${hb(s.hb,'s',40)}</button>`}).join('')}
+  return`<button class="sc g in" data-act="tab" data-id="${esc(s.id)}"><h4><i class="dot ${dotc(s.up)}"></i>${esc(s.name)}${sshOn(s.id)?`<span class="sshb" role="button" tabindex="0" data-act="ssh" data-id="${esc(s.id)}" title="打开 SSH 终端">${ic('term')}SSH</span>`:''}</h4><div class="sub">${t?esc(t.os)+' · 运行 '+fup(t.uptime):s.up===false?'离线:'+esc(s.err):'等待数据…'}</div><div class="ipl">公网 IP ${ipHtml(s)}</div>${t?bar('CPU',t.cpu,'cpu',s.id)+bar('内存',pct(t.mem),'mem',s.id)+bar('磁盘',pct(t.disk),'disk',s.id)+(t.swap&&t.swap.total?bar('交换',pct(t.swap),'swap',s.id):'')+`<div class="ft"><span>↓ ${fsp(t.net.rxs)}&nbsp; ↑ ${fsp(t.net.txs)}</span><span>${upc(s.up24)}</span></div>`:''}${hb(s.hb,'s',40)}</button>`}).join('')}
   <button class="addcard" data-act="addServer"><div>${ic('plus','ic" style="width:26px;height:26px')}<div style="margin-top:8px">添加服务器</div></div></button></div>`;
 }
 function detail(s){
@@ -324,7 +339,7 @@ function detail(s){
  if(!t)return head+`<div class="off in"><b>${s.up===false?'无法连接':'正在获取数据'}</b><p>${esc(s.err||'第一次采集需要几秒钟')}</p>${s.up===false?'<p>请检查:对方探针是否在运行、地址和端口是否正确、TOKEN 是否和对方 docker-compose.agent.yml 里的一致。</p>':''}</div>`;
  const off=s.up===false?`<div class="off in" style="padding:12px;margin-bottom:12px"><b>已离线:${esc(s.err)}</b>,下面是最后一次收到的数据</div>`:'';
  const rgs=[['live','实时'],['1h','1 小时'],['6h','6 小时'],['24h','24 小时']].map(([k,l])=>`<button data-act="range" data-r="${k}" class="${range===k?'on':''}">${l}</button>`).join('');
- return head+off+`<div class="gauges">${ring(t.cpu,'CPU',t.cpu.toFixed(1)+'%','负载 '+t.load.map(x=>x.toFixed(2)).join(' / '),tipOf('cpu',t))}${ring(pct(t.mem),'内存',fb(t.mem.used),'共 '+fb(t.mem.total),tipOf('mem',t))}${ring(pct(t.disk),'磁盘',fb(t.disk.used),'共 '+fb(t.disk.total),tipOf('disk',t))}${ring(pct(t.swap),'交换分区',t.swap.total?fb(t.swap.used):'未启用',t.swap.total?'共 '+fb(t.swap.total):'无 swap',tipOf('swap',t))}</div>
+ return head+off+`<div class="gauges">${ring(t.cpu,'CPU',t.cpu.toFixed(1)+'%','负载 '+t.load.map(x=>x.toFixed(2)).join(' / '),'cpu',s.id)}${ring(pct(t.mem),'内存',fb(t.mem.used),'共 '+fb(t.mem.total),'mem',s.id)}${ring(pct(t.disk),'磁盘',fb(t.disk.used),'共 '+fb(t.disk.total),'disk',s.id)}${ring(pct(t.swap),'交换分区',t.swap.total?fb(t.swap.used):'未启用',t.swap.total?'共 '+fb(t.swap.total):'无 swap','swap',s.id)}</div>
  <div class="cols">
   <div class="box g in"><h5>CPU 与内存<span class="rg">${rgs}</span></h5><div class="leg" style="margin-bottom:6px"><span><i style="background:var(--cpu)"></i>CPU</span><span><i style="background:var(--mem)"></i>内存</span></div><div class="chart" id="c1"></div></div>
   <div class="box g in"><h5>网络流量<span class="leg"><span><i style="background:var(--rx)"></i>下载 ${fsp(t.net.rxs)}</span><span><i style="background:var(--tx2)"></i>上传 ${fsp(t.net.txs)}</span></span></h5><div class="chart" id="c2" style="margin-top:22px"></div></div>

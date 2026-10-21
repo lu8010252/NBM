@@ -7,6 +7,7 @@ services:
     container_name: nbm-agent
     restart: unless-stopped
     network_mode: host
+    pid: host                   # 让面板看到宿主机的进程,悬停 CPU/内存/交换分区时才能显示进程占用明细
     mem_limit: 64m
     environment:
       - MODE=agent
