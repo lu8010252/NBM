@@ -69,6 +69,7 @@ main{max-width:1120px;margin:0 auto;padding:14px 18px 40px}
 .leg{font-weight:400;font-size:12.5px;color:var(--mut);display:flex;gap:12px}.leg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
 .rg{display:flex;gap:2px;background:rgba(var(--wf),.08);border-radius:9px;padding:2px}.rg button{padding:3px 10px;border-radius:7px;font-size:12px;color:var(--mut);font-weight:400}.rg button.on{background:rgba(var(--wf),.18);color:var(--tx)}
 .chart{position:relative;height:170px}.chart svg{width:100%;height:170px;display:block}
+.htip{position:fixed;z-index:9999;pointer-events:none;display:none;background:rgba(8,12,26,.94);color:#e8ecf8;border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12px;line-height:1.7;white-space:pre-line;max-width:320px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
 .tip{position:absolute;top:6px;pointer-events:none;background:rgba(8,12,26,.94);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:12px;line-height:1.6;white-space:nowrap;display:none;z-index:2}
 .empty{height:100%;display:grid;place-items:center;color:var(--mut);font-size:13px}
 .av{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:2px}.av div{font-size:12.5px;color:var(--mut)}.av b{display:block;font-size:24px;color:var(--tx);font-weight:600;margin-top:1px}
@@ -255,9 +256,22 @@ const modalOpen=()=>$('#md').classList.contains('on');
 const dotc=u=>u===true?'u':u===false?'d':'';
 
 /* ---------- 组件 ---------- */
-function ring(p,label,main,sub){const L=2*Math.PI*33;return`<div class="gc in"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="33" fill="none" style="stroke:rgba(var(--wf),.12)" stroke-width="8"/><circle cx="40" cy="40" r="33" fill="none" stroke="${col(p)}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(L*Math.min(p,100)/100).toFixed(1)} ${L.toFixed(1)}" transform="rotate(-90 40 40)"/><text x="40" y="45" text-anchor="middle" fill="#fff" font-size="16" font-weight="600">${p.toFixed(0)}%</text></svg><div><div class="l">${label}</div><b>${main}</b><div class="v">${sub}</div></div></div>`}
+function ring(p,label,main,sub,tp){const L=2*Math.PI*33;return`<div class="gc in"${tp?` data-tip="${esc(tp)}"`:''}><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="33" fill="none" style="stroke:rgba(var(--wf),.12)" stroke-width="8"/><circle cx="40" cy="40" r="33" fill="none" stroke="${col(p)}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(L*Math.min(p,100)/100).toFixed(1)} ${L.toFixed(1)}" transform="rotate(-90 40 40)"/><text x="40" y="45" text-anchor="middle" fill="#fff" font-size="16" font-weight="600">${p.toFixed(0)}%</text></svg><div><div class="l">${label}</div><b>${main}</b><div class="v">${sub}</div></div></div>`}
 function hb(a,cls='',n=60){a=a||[];const e=Math.max(0,n-a.length);return`<div class="hb ${cls}">${'<i></i>'.repeat(e)}${a.slice(-n).map(v=>`<i class="${v[0]?'g1':'r1'}" title="${v[0]?'正常 '+v[1]+' ms':'失败'}"></i>`).join('')}</div>`}
-function bar(l,p){return`<div class="bar"><span>${l}</span><div class="tr"><i style="width:${Math.min(p,100).toFixed(0)}%;background:${col(p)}"></i></div><b>${p.toFixed(0)}%</b></div>`}
+function bar(l,p,tp){return`<div class="bar"${tp?` data-tip="${esc(tp)}"`:''}><span>${l}</span><div class="tr"><i style="width:${Math.min(p,100).toFixed(0)}%;background:${col(p)}"></i></div><b>${p.toFixed(0)}%</b></div>`}
+function tipOf(k,t){const P=x=>x.toFixed(1)+'%',U=o=>o&&o.total?o:{used:0,total:0};
+ if(k==='cpu')return['CPU 使用率 '+P(t.cpu),(t.cpuModel&&t.cpuModel!=='—'?t.cpuModel+' · ':'')+t.cores+' 核','负载(1/5/15 分钟) '+t.load.map(x=>x.toFixed(2)).join(' / '),'每核平均负载 '+(t.load[0]/(t.cores||1)).toFixed(2)].join('\n');
+ if(k==='mem'){const m=U(t.mem);return['内存 '+P(pct(m)),'已用 '+fb(m.used),'可用 '+fb(m.total-m.used),'总量 '+fb(m.total)].join('\n')}
+ if(k==='disk'){const m=U(t.disk);return['磁盘 '+P(pct(m)),'已用 '+fb(m.used),'剩余 '+fb(m.total-m.used),'总量 '+fb(m.total)].join('\n')}
+ if(k==='swap'){const m=U(t.swap);return m.total?['交换分区 '+P(pct(m)),'已用 '+fb(m.used),'剩余 '+fb(m.total-m.used),'总量 '+fb(m.total)].join('\n'):'交换分区未启用'}
+ return''}
+(function(){let el=null,cur=null;const mv=e=>{const w=el.offsetWidth,h=el.offsetHeight;let x=e.clientX+14,y=e.clientY+16;if(x+w>innerWidth-6)x=e.clientX-w-14;if(y+h>innerHeight-6)y=e.clientY-h-14;el.style.left=Math.max(6,x)+'px';el.style.top=Math.max(6,y)+'px'};
+ document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(!t){if(el)el.style.display='none';cur=null;return}
+  if(!el){el=document.createElement('div');el.className='htip';document.body.appendChild(el)}
+  cur=t;el.textContent=t.getAttribute('data-tip');el.style.display='block';mv(e)});
+ document.addEventListener('mousemove',e=>{if(cur&&el&&el.style.display==='block'){if(!document.body.contains(cur)){el.style.display='none';cur=null;return}el.textContent=cur.getAttribute('data-tip');mv(e)}});
+ document.addEventListener('mouseleave',()=>{if(el)el.style.display='none';cur=null});
+})();
 function spk(d,c='#6ea8ff'){d=d||[];if(d.length<2)return'<svg class="spk"></svg>';const m=Math.max(1,...d),n=d.length;return`<svg class="spk" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="${c}" stroke-width="1.5" vector-effect="non-scaling-stroke" points="${d.map((v,i)=>`${(i/(n-1)*100).toFixed(1)},${(20-v/m*18).toFixed(1)}`).join(' ')}"/></svg>`}
 const niceB=v=>{const k=Math.max(0,Math.floor(Math.log(v)/Math.log(1024))),u=Math.pow(1024,k),x=v/u;return([1,2,5,10,20,50,100,200,500,1000].find(n=>n>=x)||1000)*u};
 const niceMax=v=>{const p=Math.pow(10,Math.floor(Math.log10(v))),r=v/p;return(r<=1?1:r<=2?2:r<=5?5:10)*p};
@@ -302,7 +316,7 @@ function renderTabs(){
 }
 function overview(){
  return`<div class="ov">${st.servers.map(s=>{const t=s.stats;
-  return`<button class="sc g in" data-act="tab" data-id="${esc(s.id)}"><h4><i class="dot ${dotc(s.up)}"></i>${esc(s.name)}${sshOn(s.id)?`<span class="sshb" role="button" tabindex="0" data-act="ssh" data-id="${esc(s.id)}" title="打开 SSH 终端">${ic('term')}SSH</span>`:''}</h4><div class="sub">${t?esc(t.os)+' · 运行 '+fup(t.uptime):s.up===false?'离线:'+esc(s.err):'等待数据…'}</div><div class="ipl">公网 IP ${ipHtml(s)}</div>${t?bar('CPU',t.cpu)+bar('内存',pct(t.mem))+bar('磁盘',pct(t.disk))+`<div class="ft"><span>↓ ${fsp(t.net.rxs)}&nbsp; ↑ ${fsp(t.net.txs)}</span><span>${upc(s.up24)}</span></div>`:''}${hb(s.hb,'s',40)}</button>`}).join('')}
+  return`<button class="sc g in" data-act="tab" data-id="${esc(s.id)}"><h4><i class="dot ${dotc(s.up)}"></i>${esc(s.name)}${sshOn(s.id)?`<span class="sshb" role="button" tabindex="0" data-act="ssh" data-id="${esc(s.id)}" title="打开 SSH 终端">${ic('term')}SSH</span>`:''}</h4><div class="sub">${t?esc(t.os)+' · 运行 '+fup(t.uptime):s.up===false?'离线:'+esc(s.err):'等待数据…'}</div><div class="ipl">公网 IP ${ipHtml(s)}</div>${t?bar('CPU',t.cpu,tipOf('cpu',t))+bar('内存',pct(t.mem),tipOf('mem',t))+bar('磁盘',pct(t.disk),tipOf('disk',t))+(t.swap&&t.swap.total?bar('交换',pct(t.swap),tipOf('swap',t)):'')+`<div class="ft"><span>↓ ${fsp(t.net.rxs)}&nbsp; ↑ ${fsp(t.net.txs)}</span><span>${upc(s.up24)}</span></div>`:''}${hb(s.hb,'s',40)}</button>`}).join('')}
   <button class="addcard" data-act="addServer"><div>${ic('plus','ic" style="width:26px;height:26px')}<div style="margin-top:8px">添加服务器</div></div></button></div>`;
 }
 function detail(s){
@@ -310,7 +324,7 @@ function detail(s){
  if(!t)return head+`<div class="off in"><b>${s.up===false?'无法连接':'正在获取数据'}</b><p>${esc(s.err||'第一次采集需要几秒钟')}</p>${s.up===false?'<p>请检查:对方探针是否在运行、地址和端口是否正确、TOKEN 是否和对方 docker-compose.agent.yml 里的一致。</p>':''}</div>`;
  const off=s.up===false?`<div class="off in" style="padding:12px;margin-bottom:12px"><b>已离线:${esc(s.err)}</b>,下面是最后一次收到的数据</div>`:'';
  const rgs=[['live','实时'],['1h','1 小时'],['6h','6 小时'],['24h','24 小时']].map(([k,l])=>`<button data-act="range" data-r="${k}" class="${range===k?'on':''}">${l}</button>`).join('');
- return head+off+`<div class="gauges">${ring(t.cpu,'CPU',t.cpu.toFixed(1)+'%','负载 '+t.load.map(x=>x.toFixed(2)).join(' / '))}${ring(pct(t.mem),'内存',fb(t.mem.used),'共 '+fb(t.mem.total))}${ring(pct(t.disk),'磁盘',fb(t.disk.used),'共 '+fb(t.disk.total))}${ring(pct(t.swap),'交换分区',t.swap.total?fb(t.swap.used):'未启用',t.swap.total?'共 '+fb(t.swap.total):'无 swap')}</div>
+ return head+off+`<div class="gauges">${ring(t.cpu,'CPU',t.cpu.toFixed(1)+'%','负载 '+t.load.map(x=>x.toFixed(2)).join(' / '),tipOf('cpu',t))}${ring(pct(t.mem),'内存',fb(t.mem.used),'共 '+fb(t.mem.total),tipOf('mem',t))}${ring(pct(t.disk),'磁盘',fb(t.disk.used),'共 '+fb(t.disk.total),tipOf('disk',t))}${ring(pct(t.swap),'交换分区',t.swap.total?fb(t.swap.used):'未启用',t.swap.total?'共 '+fb(t.swap.total):'无 swap',tipOf('swap',t))}</div>
  <div class="cols">
   <div class="box g in"><h5>CPU 与内存<span class="rg">${rgs}</span></h5><div class="leg" style="margin-bottom:6px"><span><i style="background:var(--cpu)"></i>CPU</span><span><i style="background:var(--mem)"></i>内存</span></div><div class="chart" id="c1"></div></div>
   <div class="box g in"><h5>网络流量<span class="leg"><span><i style="background:var(--rx)"></i>下载 ${fsp(t.net.rxs)}</span><span><i style="background:var(--tx2)"></i>上传 ${fsp(t.net.txs)}</span></span></h5><div class="chart" id="c2" style="margin-top:22px"></div></div>
