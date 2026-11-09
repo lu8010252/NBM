@@ -134,7 +134,8 @@ main{max-width:1120px;margin:0 auto;padding:14px 18px 40px}
 .how ol{padding-left:18px;margin-top:8px;line-height:1.8}
 .stabs{display:flex;gap:4px;padding:0 20px;border-bottom:1px solid var(--line);overflow-x:auto}.stabs button{padding:10px 14px;color:var(--mut);border-bottom:2px solid transparent;white-space:nowrap}.stabs button.on{color:var(--tx);border-color:var(--a)}
 .bf{background:rgba(var(--wf),.05);border-radius:12px;padding:10px;margin-bottom:10px}.bf .hd{display:flex;gap:8px;margin-bottom:8px}
-.bi{display:grid;grid-template-columns:1fr 1.6fr 30px 42px 30px;gap:6px;margin-bottom:6px}
+.bi{display:grid;grid-template-columns:1fr 1.6fr 22px 30px 42px 30px;gap:6px;margin-bottom:6px}
+.mvc{display:grid;grid-template-rows:1fr 1fr;gap:2px;height:100%}.mvc button,.mvf{border-radius:6px;font-size:10px;line-height:1;color:var(--mut);border:1px solid var(--line)}.mvc button:hover:not(:disabled),.mvf:hover:not(:disabled){background:rgba(var(--wf),.1);color:var(--tx)}.mvc button:disabled,.mvf:disabled{opacity:.3;cursor:default}.mvf{padding:0 9px;font-size:12px}
 .bi .dv{height:100%;border-radius:8px;font-size:11.5px;color:var(--mut);border:1px solid var(--line);white-space:nowrap}.bi .dv:hover{background:rgba(var(--wf),.1)}.bi .dv.pc,.bi .dv.mobile{color:var(--a);border-color:var(--a)}
 .icrow{display:flex;gap:14px;align-items:center}.iprev{width:64px;height:64px;border-radius:16px;background:rgba(var(--wf),.07);border:1px dashed var(--line);display:grid;place-items:center;color:var(--mut);font-size:12px;flex:none;overflow:hidden}.iprev img{width:100%;height:100%;object-fit:contain}
 .warnbox{background:#f8717120;border:1px solid #f8717144;color:#fecaca;border-radius:12px;padding:11px 14px;font-size:13px;line-height:1.7;margin-bottom:14px}
@@ -167,6 +168,9 @@ main{max-width:1120px;margin:0 auto;padding:14px 18px 40px}
 .bke svg{width:12px;height:12px}
 .drawer a.bk:hover .bke{display:grid}
 @media(hover:none){.bke{display:grid;opacity:.75}}
+.drawer a.bk{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.drawer a.bk.dragging{opacity:.3}.drawer a.bk.tb{box-shadow:inset 3px 0 0 var(--a)}.drawer a.bk.ta{box-shadow:inset -3px 0 0 var(--a)}.bkf.over{outline:2px dashed var(--a);outline-offset:-2px}
+.bkghost{position:fixed;z-index:99;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px 4px 9px;border-radius:14px;background:rgba(var(--wf),.22);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 10px 28px rgba(0,0,0,.35);color:var(--tx);font-size:12.5px;text-align:center;transform:scale(1.07)}.bkghost em{font-style:normal;width:100%;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-all}.bkghost .bke{display:none}
 .bki.plus{background:rgba(var(--wf),.07);border:1.5px dashed rgba(var(--wf),.28);box-shadow:none;color:var(--mut)}
 .bki.plus svg{width:20px;height:20px}
 .f select option{background:var(--pop);color:var(--tx)}
@@ -416,8 +420,30 @@ const bkName=i=>i.name||(()=>{try{return new URL(i.url).host}catch{return i.url}
 function bkIcon(nm,url){let o='';try{o=new URL(url).origin}catch{}return`<span class="bki" style="--h:${hue(nm)}">${esc((String(nm).trim()[0]||'?').toUpperCase())}${o?`<img src="${esc(o)}/favicon.ico" alt="" loading="lazy" onerror="this.remove()">`:''}</span>`}
 function drawer(){if($('#sug').classList.contains('on'))sugRender();
  const fs=(cfg.bookmarks||[]).map((f,fi)=>({f,fi,its:(f.items||[]).map((i,ji)=>({i,ji})).filter(x=>bmShow(x.i))})).filter(x=>x.its.length),n=fs.reduce((a,x)=>a+x.its.length,0);
- $('#dr').innerHTML=`<div class="bkt">书签<small>${n} 个</small><button class="bt s sm" data-act="addBm2">${ic('plus')} 添加</button></div>`+(fs.length?fs.map(({f,fi,its})=>`<section class="bkf"><div class="bkh">${esc(f.folder)}<span>${its.length}</span></div><div class="bkg">${its.map(({i,ji})=>{const nm=bkName(i);
-  return`<a class="bk" href="${esc(i.url)}" target="_blank" rel="noopener" title="${esc(nm)}&#10;${esc(i.url)}">${bkIcon(nm,i.url)}<em>${esc(nm)}</em><button class="bke" data-act="editBm" data-fi="${fi}" data-ji="${ji}" title="编辑" aria-label="编辑">${ic('edit')}</button></a>`}).join('')}</div></section>`).join(''):'<p class="hint0">还没有书签,点右上角「添加」。</p>')}
+ $('#dr').innerHTML=`<div class="bkt">书签<small>${n} 个</small><button class="bt s sm" data-act="addBm2">${ic('plus')} 添加</button></div>`+(fs.length?fs.map(({f,fi,its})=>`<section class="bkf" data-fi="${fi}"><div class="bkh">${esc(f.folder)}<span>${its.length}</span></div><div class="bkg">${its.map(({i,ji})=>{const nm=bkName(i);
+  return`<a class="bk" data-fi="${fi}" data-ji="${ji}" draggable="false" href="${esc(i.url)}" target="_blank" rel="noopener" title="${esc(nm)}&#10;${esc(i.url)}">${bkIcon(nm,i.url)}<em>${esc(nm)}</em><button class="bke" data-act="editBm" data-fi="${fi}" data-ji="${ji}" title="编辑" aria-label="编辑">${ic('edit')}</button></a>`}).join('')}</div></section>`).join(''):'<p class="hint0">还没有书签,点右上角「添加」。</p>')}
+/* 书签抽屉:拖动调整位置(电脑直接拖;手机长按后拖,可跨文件夹) */
+(()=>{let d=null,tm=0,sup=0;const box=$('#dr');
+ const clr=()=>{clearTimeout(tm);if(d){if(d.g)d.g.remove();if(d.el)d.el.classList.remove('dragging')}$$('.bk.tb,.bk.ta').forEach(x=>x.classList.remove('tb','ta'));$$('.bkf.over').forEach(x=>x.classList.remove('over'));d=null};
+ const go=()=>{if(!d||d.on)return;d.on=1;const r=d.el.getBoundingClientRect(),g=d.el.cloneNode(true);g.className='bkghost';g.removeAttribute('href');g.style.cssText=`width:${r.width}px;left:${r.left}px;top:${r.top}px`;document.body.appendChild(g);d.g=g;d.ox=d.x-r.left;d.oy=d.y-r.top;d.el.classList.add('dragging');try{navigator.vibrate&&navigator.vibrate(12)}catch{}};
+ box.addEventListener('dragstart',e=>{if(e.target.closest&&e.target.closest('.bk'))e.preventDefault()});
+ box.addEventListener('contextmenu',e=>{if(d)e.preventDefault()});
+ box.addEventListener('click',e=>{if(Date.now()-sup<450){e.preventDefault();e.stopPropagation()}},true);
+ box.addEventListener('pointerdown',e=>{const el=e.target.closest&&e.target.closest('a.bk');if(!el||e.target.closest('.bke')||(e.pointerType==='mouse'&&e.button!==0))return;clr();
+  d={el,x:e.clientX,y:e.clientY,on:0,touch:e.pointerType!=='mouse',fi:+el.dataset.fi,ji:+el.dataset.ji,t:null};if(d.touch)tm=setTimeout(go,380)});
+ document.addEventListener('touchmove',e=>{if(d&&d.on)e.preventDefault()},{passive:false});
+ document.addEventListener('pointermove',e=>{if(!d)return;
+  if(!d.on){const m=Math.hypot(e.clientX-d.x,e.clientY-d.y);if(d.touch){if(m>9)clr()}else if(m>6)go();return}
+  d.g.style.left=e.clientX-d.ox+'px';d.g.style.top=e.clientY-d.oy+'px';
+  const br=box.getBoundingClientRect();if(e.clientY<br.top+70)box.scrollTop-=12;else if(e.clientY>br.bottom-50)box.scrollTop+=12;
+  $$('.bk.tb,.bk.ta').forEach(x=>x.classList.remove('tb','ta'));$$('.bkf.over').forEach(x=>x.classList.remove('over'));d.t=null;
+  const u=document.elementFromPoint(e.clientX,e.clientY),b=u&&u.closest('a.bk'),sec=u&&u.closest('.bkf');
+  if(b&&b!==d.el){const r=b.getBoundingClientRect(),after=e.clientX>r.left+r.width/2;b.classList.add(after?'ta':'tb');d.t={fi:+b.dataset.fi,ji:+b.dataset.ji,after}}
+  else if(sec&&!b){sec.classList.add('over');d.t={fi:+sec.dataset.fi,ji:null}}});
+ const up=async e=>{if(!d)return;const x=d;if(!x.on){clr();return}sup=Date.now();const t=x.t;clr();if(!t)return;
+  try{await saveCfg(c=>{const B=c.bookmarks,sf=B[x.fi],it=sf&&sf.items[x.ji];if(!it||!B[t.fi])return;sf.items.splice(x.ji,1);const T=B[t.fi].items;let p=t.ji==null?T.length:t.ji+(t.after?1:0);if(t.fi===x.fi&&t.ji!=null&&x.ji<p)p--;T.splice(p,0,it);c.bookmarks=B.filter(f=>f.items.length)},'已调整位置')}catch(er){toast(er.message)}};
+ document.addEventListener('pointerup',up);document.addEventListener('pointercancel',()=>{if(d&&d.on)sup=Date.now();clr()});
+})();
 /* 添加 / 编辑书签(粘贴网址就行,名称自动获取) */
 const bmNorm=u=>{u=String(u||'').trim();if(!u||/^[a-z][a-z0-9+.-]*:\/\//i.test(u))return u;return(/^(\d{1,3}(\.\d{1,3}){3}|localhost|[^\/]+:\d+)(:\d+)?(\/|$)/i.test(u)?'http://':'https://')+u};
 const bmHost=u=>{try{const h=new URL(u).hostname.replace(/^www\./,'');if(/^[\d.]+$/.test(h)||h==='localhost')return new URL(u).host;const p=h.split('.'),l=p.length>1?p[p.length-2]:p[0];return l.charAt(0).toUpperCase()+l.slice(1)}catch{return u}};
@@ -542,7 +568,7 @@ function drawTab(){
   CK('o_wx','在左上角显示天气',dr.showWeather!==false)+F('天气城市','o_city',dr.weatherCity||'','maxlength="40" placeholder="例如 安徽省蚌埠市怀远县、春川、Seoul;留空则按你访问面板的 IP 自动定位"','支持省市县全称。天气数据来自 open-meteo.com,由主面板所在的服务器去获取。')+
   `<label class="f"><span>自定义壁纸(每行一个图片地址)</span><textarea id="o_bg" placeholder="留空则使用必应每日壁纸">${esc((dr.bgList||[]).join('\n'))}</textarea><em>填了就只轮播这些图片。服务器访问不了必应时,请在这里填自己的图片地址。</em></label>`;
   iconPrev();$('#o_file').onchange=e=>pickIcon(e.target.files[0]);lookToggle()}
- if(stab==='bm'){b.innerHTML='<p class="hint0">点 ☆ 固定书签:点击首页搜索框时,会弹出固定的这些书签。一个都不固定时,显示名为「常用」的文件夹;没有的话显示前 8 个。右边的「全部 / 电脑 / 手机」点一下可切换,决定这个书签在哪种设备上显示(这里始终能看到全部,方便编辑)。</p>'+(dr.bookmarks||[]).map((f,i)=>`<div class="bf"><div class="hd"><input class="tin fn" value="${esc(f.folder)}" placeholder="文件夹名"><button class="bt d sm" data-act="delFolder" data-i="${i}">删除文件夹</button></div>${f.items.map((it,j)=>`<div class="bi" data-pin="${it.pin?1:0}" data-dev="${it.dev||''}"><input class="tin in1" value="${esc(it.name)}" placeholder="名称"><input class="tin in2" value="${esc(it.url)}" placeholder="https://"><button class="pn ${it.pin?'on':''}" data-act="pinBm" data-i="${i}" data-j="${j}" title="固定到首页" aria-label="固定到首页">${ic('star')}</button><button class="dv ${it.dev||''}" data-act="devBm" data-i="${i}" data-j="${j}" title="点击切换:所有设备 / 仅电脑 / 仅手机">${it.dev==='pc'?'电脑':it.dev==='mobile'?'手机':'全部'}</button><button class="x" data-act="delBm" data-i="${i}" data-j="${j}" aria-label="删除">${ic('x')}</button></div>`).join('')}<button class="bt s sm" data-act="addBm" data-i="${i}">${ic('plus')} 添加书签</button></div>`).join('')+`<button class="bt s" data-act="addFolder">${ic('plus')} 添加文件夹</button>`}
+ if(stab==='bm'){b.innerHTML='<p class="hint0">点 ☆ 固定书签:点击首页搜索框时,会弹出固定的这些书签。一个都不固定时,显示名为「常用」的文件夹;没有的话显示前 8 个。右边的「全部 / 电脑 / 手机」点一下可切换,决定这个书签在哪种设备上显示(这里始终能看到全部,方便编辑)。</p>'+(dr.bookmarks||[]).map((f,i)=>`<div class="bf"><div class="hd"><input class="tin fn" value="${esc(f.folder)}" placeholder="文件夹名"><button class="mvf" data-act="moveFolder" data-i="${i}" data-d="-1" title="文件夹上移" aria-label="文件夹上移" ${i===0?'disabled':''}>▲</button><button class="mvf" data-act="moveFolder" data-i="${i}" data-d="1" title="文件夹下移" aria-label="文件夹下移" ${i===dr.bookmarks.length-1?'disabled':''}>▼</button><button class="bt d sm" data-act="delFolder" data-i="${i}">删除文件夹</button></div>${f.items.map((it,j)=>`<div class="bi" data-pin="${it.pin?1:0}" data-dev="${it.dev||''}"><input class="tin in1" value="${esc(it.name)}" placeholder="名称"><input class="tin in2" value="${esc(it.url)}" placeholder="https://"><div class="mvc"><button data-act="moveBm" data-i="${i}" data-j="${j}" data-d="-1" title="上移" aria-label="上移" ${j===0?'disabled':''}>▲</button><button data-act="moveBm" data-i="${i}" data-j="${j}" data-d="1" title="下移" aria-label="下移" ${j===f.items.length-1?'disabled':''}>▼</button></div><button class="pn ${it.pin?'on':''}" data-act="pinBm" data-i="${i}" data-j="${j}" title="固定到首页" aria-label="固定到首页">${ic('star')}</button><button class="dv ${it.dev||''}" data-act="devBm" data-i="${i}" data-j="${j}" title="点击切换:所有设备 / 仅电脑 / 仅手机">${it.dev==='pc'?'电脑':it.dev==='mobile'?'手机':'全部'}</button><button class="x" data-act="delBm" data-i="${i}" data-j="${j}" aria-label="删除">${ic('x')}</button></div>`).join('')}<button class="bt s sm" data-act="addBm" data-i="${i}">${ic('plus')} 添加书签</button></div>`).join('')+`<button class="bt s" data-act="addFolder">${ic('plus')} 添加文件夹</button>`}
  if(stab==='ntfy'){const n=dr.ntfy;b.innerHTML=CK('n_on','开启 ntfy 通知',n.enabled)+F('ntfy 地址(含主题)','n_url',n.url,'placeholder="https://ntfy.sh/mytopic"','手机装 ntfy App 并订阅同一个主题就能收到。')+F('访问 Token(可选)','n_tok','',`type="password" autocomplete="new-password" placeholder="${n.hasToken?'已保存,不修改请留空':'主题需要登录时才填'}"`)+
   `<div class="three">${F('连续失败几次算离线','n_fa',n.failAfter,'type="number" min="1"')}${F('CPU 告警线 %','n_cpu',n.cpu,'type="number" min="0" max="100"')}${F('内存告警线 %','n_mem',n.mem,'type="number" min="0" max="100"')}</div><div class="three">${F('磁盘告警线 %','n_disk',n.disk,'type="number" min="0" max="100"')}${F('持续几分钟才告警','n_su',n.sustain,'type="number" min="1"')}<div></div></div><p class="note" style="margin:-6px 0 12px">告警线填 0 表示不监控该项。同一次故障只通知一次,恢复时再通知一次。服务器至少连续失败 3 次(约 15 秒)才算离线。</p>`+CK('n_rc','恢复时也通知',n.recover)+`<div class="row"><button class="bt s sm" id="n_test">发送测试通知</button><span id="n_res" class="res"></span></div>`;
   $('#n_test').onclick=async()=>{const r=$('#n_res');r.className='res';r.textContent='发送中…';try{const o=await send('/api/ntfy/test',{url:$('#n_url').value.trim(),token:$('#n_tok').value},'POST');r.className='res '+(o.ok?'ok':'no');r.textContent=o.ok?'已发送,请看手机':'失败:'+o.error}catch(e){r.className='res no';r.textContent=e.message}}}
@@ -577,7 +603,7 @@ document.addEventListener('click',async e=>{
  if(e.target.closest('#sug a.sg'))$('#sug').classList.remove('on');
  if(e.target.id==='md')return termOn?void 0:closeModal();
  if(!t)return;const a=t.dataset.act,id=t.dataset.id;
- if(a==='editSite'||a==='editBm'||a==='editServer'||a==='stab'||a==='delFolder'||a==='delBm'||a==='addBm'||a==='addFolder')e.preventDefault();
+ if(a==='editSite'||a==='editBm'||a==='editServer'||a==='stab'||a==='delFolder'||a==='delBm'||a==='addBm'||a==='addFolder'||a==='moveBm'||a==='moveFolder')e.preventDefault();
  if(a==='tab'){const now=Date.now(),l=((cfg.servers||[]).find(x=>x.id===id)||{}).link;if(l&&lastTab.id===id&&now-lastTab.t<450){window.open(l,'_blank','noopener');lastTab={id:'',t:0}}else lastTab={id,t:now};sel=id;ls.set('nbm.sel',sel);render()}
  else if(a==='addServer')serverForm();
  else if(a==='editServer')serverForm(id);
@@ -607,6 +633,8 @@ document.addEventListener('click',async e=>{
  else if(a==='pinBm'){readTab();const it=dr.bookmarks[+t.dataset.i].items[+t.dataset.j];it.pin=!it.pin;drawTab()}
  else if(a==='delBm'){readTab();dr.bookmarks[+t.dataset.i].items.splice(+t.dataset.j,1);drawTab()}
  else if(a==='delFolder'){readTab();dr.bookmarks.splice(+t.dataset.i,1);drawTab()}
+ else if(a==='moveBm'){readTab();const L=dr.bookmarks[+t.dataset.i].items,j=+t.dataset.j,k=j+ +t.dataset.d;if(k>=0&&k<L.length){[L[j],L[k]]=[L[k],L[j]];drawTab()}}
+ else if(a==='moveFolder'){readTab();const L=dr.bookmarks,j=+t.dataset.i,k=j+ +t.dataset.d;if(k>=0&&k<L.length){[L[j],L[k]]=[L[k],L[j]];drawTab()}}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(modalOpen()&&!termOn)closeModal();$('#dr').classList.remove('on');$('#wxp').classList.remove('on');$('#menu').classList.remove('on');$('#sug').classList.remove('on')}
  if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[role=button][data-act]')){e.preventDefault();e.target.click()}
